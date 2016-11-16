@@ -32,6 +32,11 @@ struct Status {
   virtual void BuildLoadDyndeps() = 0;
   virtual void BuildStarted() = 0;
   virtual void BuildFinished() = 0;
+
+  virtual void Info(const char* msg, ...) = 0;
+  virtual void Warning(const char* msg, ...) = 0;
+  virtual void Error(const char* msg, ...) = 0;
+
   virtual ~Status() { }
 };
 
@@ -46,6 +51,10 @@ struct StatusPrinter : Status {
   void BuildLoadDyndeps();
   void BuildStarted();
   void BuildFinished();
+
+  void Info(const char* msg, ...);
+  void Warning(const char* msg, ...);
+  void Error(const char* msg, ...);
 
   /// Format the progress status string by replacing the placeholders.
   /// See the user manual for more information about the available

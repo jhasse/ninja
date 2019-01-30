@@ -16,14 +16,13 @@ jobs:
         ./ninja_test --gtest_filter=-SubprocessTest.SetWithLots
         ./misc/ninja_syntax_test.py
         ./misc/output_test.py
+        mkdir package
+        mv ninja package
       displayName: Test
-    
-    - script: zip ninja-linux.zip ninja
-      displayName: Package
 
     - task: PublishPipelineArtifact@0
       inputs:
-        targetPath: ninja-linux.zip
+        targetPath: package
 
   - job: macOS
     pool:
@@ -39,14 +38,13 @@ jobs:
         ./ninja_test --gtest_filter=-SubprocessTest.SetWithLots
         ./misc/ninja_syntax_test.py
         ./misc/output_test.py
+        mkdir package
+        mv ninja package
       displayName: Test
     
-    - script: zip ninja-mac.zip ninja
-      displayName: Package
-
     - task: PublishPipelineArtifact@0
       inputs:
-        targetPath: ninja-mac.zip
+        targetPath: package
 
   - job: Windows
     pool:
@@ -62,11 +60,10 @@ jobs:
     - script: |
         ninja_test
         python misc/ninja_syntax_test.py
+        mkdir package
+        move ninja package
       displayName: Test
-
-    - powershell: Compress-Archive -Path ninja.exe -DestinationPath ninja-win.zip
-      displayName: Package
 
     - task: PublishPipelineArtifact@0
       inputs:
-        targetPath: ninja-win.zip
+        targetPath: package

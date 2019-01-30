@@ -22,6 +22,7 @@ jobs:
 
     - task: PublishPipelineArtifact@0
       inputs:
+        artifactName: ninja-linux
         targetPath: package
 
   - job: macOS
@@ -44,6 +45,7 @@ jobs:
     
     - task: PublishPipelineArtifact@0
       inputs:
+        artifactName: ninja-mac
         targetPath: package
 
   - job: Windows
@@ -66,4 +68,5 @@ jobs:
 
     - task: PublishPipelineArtifact@0
       inputs:
+        artifactName: ninja-win
         targetPath: package

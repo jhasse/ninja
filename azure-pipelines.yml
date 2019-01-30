@@ -1,0 +1,50 @@
+trigger:
+- master
+
+jobs:
+  - job: Linux
+    pool:
+      vmImage: 'Ubuntu-16.04'
+
+    steps:
+    - script: |
+        ./configure.py --bootstrap
+        ./ninja all
+      displayName: 'Build'
+
+    - script: |
+        ./ninja_test --gtest_filter=-SubprocessTest.SetWithLots
+        ./misc/ninja_syntax_test.py
+        ./misc/output_test.py
+      displayName: 'Test'
+
+  - job: macOS
+    pool:
+      vmImage: 'macOS-10.13'
+
+    steps:
+    - script: |
+        ./configure.py --bootstrap
+        ./ninja all
+      displayName: 'Build'
+
+    - script: |
+        ./ninja_test --gtest_filter=-SubprocessTest.SetWithLots
+        ./misc/ninja_syntax_test.py
+        ./misc/output_test.py
+      displayName: 'Test'
+
+  - job: Windows
+    pool:
+      vmImage: 'vs2017-win2016'
+
+    steps:
+    - script: |
+        python configure.py --bootstrap
+        ninja.bootstrap.exe all
+      displayName: 'Build'
+
+    - script: |
+        ninja_test
+        python misc/ninja_syntax_test.py
+      displayName: 'Test'

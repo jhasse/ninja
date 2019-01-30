@@ -21,9 +21,9 @@ jobs:
     - script: zip ninja-linux.zip ninja
       displayName: Package
 
-    - task: PublishBuildArtifacts@1
+    - task: PublishPipelineArtifact@0
       inputs:
-        - pathtoPublish: ninja-linux.zip
+        targetPath: ninja-linux.zip
 
   - job: macOS
     pool:
@@ -53,12 +53,12 @@ jobs:
         call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
         python configure.py --bootstrap
         ninja.bootstrap.exe all
-      displayName: 'Build'
+      displayName: Build
 
     - script: |
         ninja_test
         python misc/ninja_syntax_test.py
-      displayName: 'Test'
+      displayName: Test
 
     - script: zip ninja-win.zip ninja.exe
       displayName: Package

@@ -63,7 +63,7 @@ jobs:
         ninja_test
         python misc/ninja_syntax_test.py
         mkdir package
-        move ninja package
+        move ninja.exe package
       displayName: Test
 
     - task: PublishPipelineArtifact@0

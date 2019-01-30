@@ -44,6 +44,10 @@ jobs:
     - script: zip ninja-mac.zip ninja
       displayName: Package
 
+    - task: PublishPipelineArtifact@0
+      inputs:
+        targetPath: ninja-mac.zip
+
   - job: Windows
     pool:
       vmImage: 'vs2017-win2016'
@@ -60,5 +64,9 @@ jobs:
         python misc/ninja_syntax_test.py
       displayName: Test
 
-    - script: zip ninja-win.zip ninja.exe
+    - powershell: Compress-Archive -Path ninja.exe -DestinationPath ninja-win.zip
       displayName: Package
+
+    - task: PublishPipelineArtifact@0
+      inputs:
+        targetPath: ninja-win.zip

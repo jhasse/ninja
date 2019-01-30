@@ -10,13 +10,16 @@ jobs:
     - script: |
         ./configure.py --bootstrap
         ./ninja all
-      displayName: 'Build'
+      displayName: Build
 
     - script: |
         ./ninja_test --gtest_filter=-SubprocessTest.SetWithLots
         ./misc/ninja_syntax_test.py
         ./misc/output_test.py
-      displayName: 'Test'
+      displayName: Test
+    
+    - script: zip ninja ninja-linux.zip
+      displayName: Package
 
   - job: macOS
     pool:
@@ -26,13 +29,16 @@ jobs:
     - script: |
         ./configure.py --bootstrap
         ./ninja all
-      displayName: 'Build'
+      displayName: Build
 
     - script: |
         ./ninja_test --gtest_filter=-SubprocessTest.SetWithLots
         ./misc/ninja_syntax_test.py
         ./misc/output_test.py
-      displayName: 'Test'
+      displayName: Test
+    
+    - script: zip ninja ninja-mac.zip
+      displayName: Package
 
   - job: Windows
     pool:
@@ -40,6 +46,7 @@ jobs:
 
     steps:
     - script: |
+        call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
         python configure.py --bootstrap
         ninja.bootstrap.exe all
       displayName: 'Build'
@@ -48,3 +55,6 @@ jobs:
         ninja_test
         python misc/ninja_syntax_test.py
       displayName: 'Test'
+
+    - script: zip ninja.exe ninja-win.zip
+      displayName: Package

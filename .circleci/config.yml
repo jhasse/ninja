@@ -1,0 +1,16 @@
+version: 2
+jobs:
+  build:
+    macos:
+      xcode: "10.0.0"
+    steps:
+      - checkout
+      - run: ./configure.py --bootstrap
+      - run: ./ninja all
+      - run: ./ninja_test --gtest_filter=-SubprocessTest.SetWithLots
+      - run: ./misc/ninja_syntax_test.py
+      - run: ./misc/output_test.py
+      - run: zip -r ninja-mac.zip ninja
+      - store_artifacts:
+          path: ninja-mac.zip
+          destination: app

@@ -18,8 +18,12 @@ jobs:
         ./misc/output_test.py
       displayName: Test
     
-    - script: zip ninja ninja-linux.zip
+    - script: zip ninja-linux.zip ninja
       displayName: Package
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        - pathtoPublish: ninja-linux.zip
 
   - job: macOS
     pool:
@@ -37,7 +41,7 @@ jobs:
         ./misc/output_test.py
       displayName: Test
     
-    - script: zip ninja ninja-mac.zip
+    - script: zip ninja-mac.zip ninja
       displayName: Package
 
   - job: Windows
@@ -46,7 +50,7 @@ jobs:
 
     steps:
     - script: |
-        call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+        call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
         python configure.py --bootstrap
         ninja.bootstrap.exe all
       displayName: 'Build'
@@ -56,5 +60,5 @@ jobs:
         python misc/ninja_syntax_test.py
       displayName: 'Test'
 
-    - script: zip ninja.exe ninja-win.zip
+    - script: zip ninja-win.zip ninja.exe
       displayName: Package

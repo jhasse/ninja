@@ -24,15 +24,25 @@ matrix:
       osx_image: xcode10
     - os: osx
       osx_image: xcode10.1
+    - os: windows
 sudo: false
 language: cpp
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install re2c             ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then choco install re2c python ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then cinst re2c; fi
 script:
-  - ./misc/ci.py
-  - python3 configure.py --bootstrap
-  - ./ninja all
-  - ./ninja_test --gtest_filter=-SubprocessTest.SetWithLots
+  - if [[ "$TRAVIS_OS_NAME" != "windows" ]]; then ./misc/ci.py; fi
+  - if [[ "$TRAVIS_OS_NAME" != "windows" ]]; then python3 configure.py --bootstrap; fi
+  - if [[ "$TRAVIS_OS_NAME" != "windows" ]]; then ./ninja all; fi
+  - if [[ "$TRAVIS_OS_NAME" != "windows" ]]; then ./ninja_test --gtest_filter=-SubprocessTest.SetWithLots; fi
   - ./misc/ninja_syntax_test.py
-  - ./misc/output_test.py
+  - if [[ "$TRAVIS_OS_NAME" != "windows" ]]; then ./misc/output_test.py; fi
+  - cmake -Bbuild-debug -H. -DCMAKE_BUILD_TYPE=Debug
+  - cd build-debug
+  - cmake --build .
+  - ctest .
+  - cd ..
+  - cmake -Bbuild-release -H. -DCMAKE_BUILD_TYPE=Release
+  - cd build-release
+  - cmake --build .
+  - ctest .

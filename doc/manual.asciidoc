@@ -271,6 +271,9 @@ Files created but not referenced in the graph are not removed. This
 tool takes in account the +-v+ and the +-n+ options (note that +-n+
 implies +-v+).
 
+`cleandead`:: remove files produced by previous builds that are no longer in the
+manifest. _Available since Ninja 1.10._
+
 `compdb`:: given a list of rules, each of which is expected to be a
 C family language compiler rule whose first input is the name of the
 source file, prints on standard output a compilation database in the
@@ -282,6 +285,9 @@ _Available since Ninja 1.2._
 target, show just the target's dependencies. _Available since Ninja 1.4._
 
 `recompact`:: recompact the `.ninja_deps` file. _Available since Ninja 1.4._
+
+`restat`:: updates all recorded file modification timestamps in the `.ninja_log`
+file. _Available since Ninja 1.10._
 
 `rules`:: output the list of all rules (eventually with their description
 if they have one).  It can be used to know which rule name to pass to
@@ -452,6 +458,14 @@ without any dependencies, the target will be considered out of date if
 it does not exist.  Without a phony build statement, Ninja will report
 an error if the file does not exist and is required by the build.
 
+To create a rule that never rebuilds, use a build rule without any input:
+----------------
+rule touch
+  command = touch $out
+build file_that_always_exists.dummy: touch
+build dummy_target_to_follow_a_pattern: phony file_that_always_exists.dummy
+----------------
+
 
 Default target statements
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -561,10 +575,10 @@ Use it like in the following example:
 ----
 rule cc
   depfile = $out.d
-  command = gcc -MMD -MF $out.d [other gcc flags here]
+  command = gcc -MD -MF $out.d [other gcc flags here]
 ----
 
-The `-MMD` flag to `gcc` tells it to output header dependencies, and
+The `-MD` flag to `gcc` tells it to output header dependencies, and
 the `-MF` flag tells it where to write them.
 
 deps

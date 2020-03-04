@@ -489,10 +489,10 @@ struct BuildTest : public StateTestWithBuiltinRules, public BuildLogUser {
                 status_(config_) {
   }
 
-  BuildTest(DepsLog* log) : config_(MakeConfig()), command_runner_(&fs_),
-                            builder_(&state_, config_, NULL, log, &fs_),
-                            status_(config_) {
-  }
+  BuildTest(DepsLog* log)
+      : config_(MakeConfig()), command_runner_(&fs_),
+        builder_(&state_, config_, NULL, log, &fs_, &status_, 0),
+        status_(config_) {}
 
   virtual void SetUp() {
     StateTestWithBuiltinRules::SetUp();

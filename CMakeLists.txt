@@ -35,20 +35,26 @@ endif()
 
 # --- optional re2c
 find_program(RE2C re2c)
-if(RE2C)
-	# the depfile parser and ninja lexers are generated using re2c.
-	function(re2c IN OUT)
-		add_custom_command(DEPENDS ${IN} OUTPUT ${OUT}
-			COMMAND ${RE2C} -b -i --no-generation-date -o ${OUT} ${IN}
-		)
-	endfunction()
-	re2c(${PROJECT_SOURCE_DIR}/src/depfile_parser.in.cc ${PROJECT_BINARY_DIR}/depfile_parser.cc)
-	re2c(${PROJECT_SOURCE_DIR}/src/lexer.in.cc ${PROJECT_BINARY_DIR}/lexer.cc)
-	add_library(libninja-re2c OBJECT ${PROJECT_BINARY_DIR}/depfile_parser.cc ${PROJECT_BINARY_DIR}/lexer.cc)
-else()
-	message(WARNING "re2c was not found; changes to src/*.in.cc will not affect your build.")
-	add_library(libninja-re2c OBJECT src/depfile_parser.cc src/lexer.cc)
+if(NOT RE2C)
+  message(WARNING "re2c was not found; building it from source.")
+  include(FetchContent)
+  FetchContent_Declare(
+    re2c
+    URL https://github.com/skvadrik/re2c/releases/download/2.0.3/re2c-2.0.3.tar.xz
+    URL_HASH SHA1=e203d97ef0e7fe2eb9b673a42eb9a7135b0ae220
+  )
+  FetchContent_MakeAvailable(re2c)
+  set(RE2C $<TARGET_FILE:re2c>)
 endif()
+# the depfile parser and ninja lexers are generated using re2c.
+function(re2c IN OUT)
+  add_custom_command(DEPENDS ${IN} ${RE2C} OUTPUT ${OUT}
+    COMMAND ${RE2C} -b -i --no-generation-date -o ${OUT} ${IN}
+  )
+endfunction()
+re2c(${PROJECT_SOURCE_DIR}/src/depfile_parser.in.cc ${PROJECT_BINARY_DIR}/depfile_parser.cc)
+re2c(${PROJECT_SOURCE_DIR}/src/lexer.in.cc ${PROJECT_BINARY_DIR}/lexer.cc)
+add_library(libninja-re2c OBJECT ${PROJECT_BINARY_DIR}/depfile_parser.cc ${PROJECT_BINARY_DIR}/lexer.cc)
 target_include_directories(libninja-re2c PRIVATE src)
 
 # --- Check for 'browse' mode support

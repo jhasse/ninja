@@ -94,6 +94,7 @@ add_library(libninja OBJECT
 	src/manifest_parser.cc
 	src/metrics.cc
 	src/parser.cc
+	src/proto.cc
 	src/state.cc
 	src/status.cc
 	src/string_piece_util.cc

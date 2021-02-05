@@ -52,7 +52,8 @@ struct Subprocess {
 
  private:
   Subprocess(bool use_console);
-  bool Start(struct SubprocessSet* set, const std::string& command);
+  bool Start(struct SubprocessSet* set, const std::string& command,
+             int extra_fd);
   void OnPipeReady();
 
   std::string buf_;
@@ -83,7 +84,8 @@ struct SubprocessSet {
   SubprocessSet();
   ~SubprocessSet();
 
-  Subprocess* Add(const std::string& command, bool use_console = false);
+  Subprocess* Add(const std::string& command, bool use_console = false,
+                  int extra_fd = -1);
   bool DoWork();
   Subprocess* NextFinished();
   void Clear();

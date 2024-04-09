@@ -535,7 +535,7 @@ for name in ['build',
              'missing_deps',
              'parser',
              'state',
-             'status',
+             'status_printer',
              'string_piece_util',
              'util',
              'version']:

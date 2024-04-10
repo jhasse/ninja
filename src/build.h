@@ -26,6 +26,7 @@
 #include "exit_status.h"
 #include "util.h"  // int64_t
 
+struct BuildConfig;
 struct BuildLog;
 struct Builder;
 struct DiskInterface;
@@ -161,6 +162,8 @@ struct CommandRunner {
 
   virtual std::vector<Edge*> GetActiveEdges() { return std::vector<Edge*>(); }
   virtual void Abort() {}
+
+  static std::unique_ptr<CommandRunner> factory(const BuildConfig&);
 };
 
 /// Options (e.g. verbosity, parallelism) passed to a build.

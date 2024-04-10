@@ -145,26 +145,31 @@ add_library(libninja OBJECT
 	src/missing_deps.cc
 	src/parser.cc
 	src/state.cc
-	src/status_printer.cc
 	src/string_piece_util.cc
 	src/util.cc
 	src/version.cc
 )
+add_library(libninja-v1 OBJECT
+	src/status_printer.cc
+	src/real_command_runner.cc
+)
 if(WIN32)
 	target_sources(libninja PRIVATE
-		src/subprocess-win32.cc
 		src/includes_normalize-win32.cc
 		src/msvc_helper-win32.cc
 		src/msvc_helper_main-win32.cc
 		src/getopt.c
 		src/minidump-win32.cc
 	)
+	target_sources(libninja-v1 PRIVATE
+		src/subprocess-win32.cc
+	)
 	# Build getopt.c, which can be compiled as either C or C++, as C++
 	# so that build environments which lack a C compiler, but have a C++
 	# compiler may build ninja.
 	set_source_files_properties(src/getopt.c PROPERTIES LANGUAGE CXX)
 else()
-	target_sources(libninja PRIVATE src/subprocess-posix.cc)
+	target_sources(libninja-v1 PRIVATE src/subprocess-posix.cc)
 	if(CMAKE_SYSTEM_NAME STREQUAL "OS400" OR CMAKE_SYSTEM_NAME STREQUAL "AIX")
 		target_sources(libninja PRIVATE src/getopt.c)
 		# Build getopt.c, which can be compiled as either C or C++, as C++
@@ -195,7 +200,7 @@ endif()
 # Main executable is library plus main() function.
 if(NINJA_BUILD_BINARY)
 	add_executable(ninja src/ninja.cc)
-	target_link_libraries(ninja PRIVATE libninja libninja-re2c)
+	target_link_libraries(ninja PRIVATE libninja libninja-v1 libninja-re2c)
 
 	if(WIN32)
 		target_sources(ninja PRIVATE windows/ninja.manifest)
@@ -282,7 +287,7 @@ if(BUILD_TESTING)
     endif()
   endif()
   find_package(Threads REQUIRED)
-  target_link_libraries(ninja_test PRIVATE libninja libninja-re2c GTest::gtest Threads::Threads)
+  target_link_libraries(ninja_test PRIVATE libninja libninja-v1 libninja-re2c GTest::gtest Threads::Threads)
 
   foreach(perftest
     build_log_perftest
@@ -293,7 +298,7 @@ if(BUILD_TESTING)
     manifest_parser_perftest
   )
     add_executable(${perftest} src/${perftest}.cc)
-    target_link_libraries(${perftest} PRIVATE libninja libninja-re2c)
+    target_link_libraries(${perftest} PRIVATE libninja libninja-v1 libninja-re2c)
   endforeach()
 
   if(CMAKE_SYSTEM_NAME STREQUAL "AIX" AND CMAKE_SIZEOF_VOID_P EQUAL 4)
@@ -308,3 +313,5 @@ endif()
 if(NINJA_BUILD_BINARY)
 	install(TARGETS ninja)
 endif()
+
+add_subdirectory(v2)

@@ -99,5 +99,5 @@ bool RealCommandRunner::WaitForCommand(Result* result) {
 }
 
 std::unique_ptr<CommandRunner> CommandRunner::factory(const BuildConfig& config) {
-  return std::make_unique<RealCommandRunner>(config);
+  return std::unique_ptr<RealCommandRunner>(new RealCommandRunner(config));
 }

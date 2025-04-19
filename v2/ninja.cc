@@ -21,6 +21,8 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
+#include <format>
+#include <iostream>
 #include <string>
 
 #ifdef _WIN32
@@ -54,6 +56,7 @@
 #include "../src/status.h"
 #include "../src/util.h"
 #include "../src/version.h"
+#include "option.h"
 
 using namespace std;
 
@@ -217,33 +220,6 @@ struct Tool {
   /// Implementation of the tool.
   NinjaMain::ToolFunc func;
 };
-
-/// Print usage information.
-void Usage(const BuildConfig& config) {
-  fprintf(stderr,
-"usage: ninja [options] [targets...]\n"
-"\n"
-"if targets are unspecified, builds the 'default' target (see manual).\n"
-"\n"
-"options:\n"
-"  --version      print ninja version (\"%s\")\n"
-"  -v, --verbose  show all command lines while building\n"
-"  --quiet        don't show progress status, just command output\n"
-"\n"
-"  -C DIR   change to DIR before doing anything else\n"
-"  -f FILE  specify input build file [default=build.ninja]\n"
-"\n"
-"  -j N     run N jobs in parallel (0 means infinity) [default=%d on this system]\n"
-"  -k N     keep going until N jobs fail (0 means infinity) [default=1]\n"
-"  -l N     do not start new jobs if the load average is greater than N\n"
-"  -n       dry run (don't run commands but act like they succeeded)\n"
-"\n"
-"  -d MODE  enable debugging (use '-d list' to list modes)\n"
-"  -t TOOL  run a subtool (use '-t list' to list subtools)\n"
-"    terminates toplevel options; further flags are passed to the tool\n"
-"  -w FLAG  adjust warnings (use '-w list' to list warnings)\n",
-          kNinjaVersion, config.parallelism);
-}
 
 /// Choose a default value for the -j (parallelism) flag.
 int GuessParallelism() {
@@ -1632,94 +1608,120 @@ int ReadFlags(int* argc, char*** argv,
               Options* options, BuildConfig* config) {
   DeferGuessParallelism deferGuessParallelism(config);
 
-  enum { OPT_VERSION = 1, OPT_QUIET = 2 };
-  const option kLongOptions[] = {
-    { "help", no_argument, NULL, 'h' },
-    { "version", no_argument, NULL, OPT_VERSION },
-    { "verbose", no_argument, NULL, 'v' },
-    { "quiet", no_argument, NULL, OPT_QUIET },
-    { NULL, 0, NULL, 0 }
-  };
+  std::array<Option, 13> possibleOptions = { {
+      { 'h', "help", "", "" },
+      { {},
+        "version",
+        "",
+        std::format("print ninja version (\"{}\")", kNinjaVersion) },
+      { 'v', "verbose", "", "show all command lines while building" },
+      { {}, "quiet", "", "don't show progress status, just command output\n" },
+      { 'C', "", "DIR", "change to DIR before doing anything else" },
+      { 'f', "", "FILE", "specify input build file [default: build.ninja]\n" },
+      { 'j', "", "N",
+        std::format("run N jobs in parallel (0 means infinity) [default={} on "
+                    "this system]",
+                    config->parallelism) },
+      { 'k', "", "N",
+        "keep going until N jobs fail (0 means infinity) [default=1]" },
+      { 'l', "", "N",
+        "do not start new jobs if the load average is greater than N" },
+      { 'n', "", "",
+        "dry run (don't run commands but act like they succeeded)\n" },
+      { 'd', "", "MODE", "enable debugging (use '-d list' to list modes)" },
+      { 't', "", "TOOL",
+        "run a subtool (use '-t list' to list subtools)\n                 "
+        "terminates toplevel options; further flags are passed to the tool" },
+      { 'w', "", "FLAG", "adjust warnings (use '-w list' to list warnings)" },
+  } };
+    fprintf(stderr,
+"usage: ninja [options] [targets...]\n"
+"\n"
+"if targets are unspecified, builds the 'default' target (see manual).\n"
+"\n"
+"options:\n");
+  std::cerr << printHelp(possibleOptions);
+  std::exit(1);
 
-  int opt;
-  while (!options->tool &&
-         (opt = getopt_long(*argc, *argv, "d:f:j:k:l:nt:vw:C:h", kLongOptions,
-                            NULL)) != -1) {
-    switch (opt) {
-      case 'd':
-        if (!DebugEnable(optarg))
-          return 1;
-        break;
-      case 'f':
-        options->input_file = optarg;
-        break;
-      case 'j': {
-        char* end;
-        int value = strtol(optarg, &end, 10);
-        if (*end != 0 || value < 0)
-          Fatal("invalid -j parameter");
+  // int opt;
+  // while (!options->tool &&
+  //        (opt = getopt_long(*argc, *argv, "d:f:j:k:l:nt:vw:C:h", kLongOptions,
+  //                           NULL)) != -1) {
+  //   switch (opt) {
+  //     case 'd':
+  //       if (!DebugEnable(optarg))
+  //         return 1;
+  //       break;
+  //     case 'f':
+  //       options->input_file = optarg;
+  //       break;
+  //     case 'j': {
+  //       char* end;
+  //       int value = strtol(optarg, &end, 10);
+  //       if (*end != 0 || value < 0)
+  //         Fatal("invalid -j parameter");
 
-        // We want to run N jobs in parallel. For N = 0, INT_MAX
-        // is close enough to infinite for most sane builds.
-        config->parallelism = value > 0 ? value : INT_MAX;
-        deferGuessParallelism.needGuess = false;
-        break;
-      }
-      case 'k': {
-        char* end;
-        int value = strtol(optarg, &end, 10);
-        if (*end != 0)
-          Fatal("-k parameter not numeric; did you mean -k 0?");
+  //       // We want to run N jobs in parallel. For N = 0, INT_MAX
+  //       // is close enough to infinite for most sane builds.
+  //       config->parallelism = value > 0 ? value : INT_MAX;
+  //       deferGuessParallelism.needGuess = false;
+  //       break;
+  //     }
+  //     case 'k': {
+  //       char* end;
+  //       int value = strtol(optarg, &end, 10);
+  //       if (*end != 0)
+  //         Fatal("-k parameter not numeric; did you mean -k 0?");
 
-        // We want to go until N jobs fail, which means we should allow
-        // N failures and then stop.  For N <= 0, INT_MAX is close enough
-        // to infinite for most sane builds.
-        config->failures_allowed = value > 0 ? value : INT_MAX;
-        break;
-      }
-      case 'l': {
-        char* end;
-        double value = strtod(optarg, &end);
-        if (end == optarg)
-          Fatal("-l parameter not numeric: did you mean -l 0.0?");
-        config->max_load_average = value;
-        break;
-      }
-      case 'n':
-        config->dry_run = true;
-        break;
-      case 't':
-        options->tool = ChooseTool(optarg);
-        if (!options->tool)
-          return 0;
-        break;
-      case 'v':
-        config->verbosity = BuildConfig::VERBOSE;
-        break;
-      case OPT_QUIET:
-        config->verbosity = BuildConfig::NO_STATUS_UPDATE;
-        break;
-      case 'w':
-        if (!WarningEnable(optarg, options))
-          return 1;
-        break;
-      case 'C':
-        options->working_dir = optarg;
-        break;
-      case OPT_VERSION:
-        printf("%s\n", kNinjaVersion);
-        return 0;
-      case 'h':
-      default:
-        deferGuessParallelism.Refresh();
-        Usage(*config);
-        return 1;
-    }
-  }
-  *argv += optind;
-  *argc -= optind;
+  //       // We want to go until N jobs fail, which means we should allow
+  //       // N failures and then stop.  For N <= 0, INT_MAX is close enough
+  //       // to infinite for most sane builds.
+  //       config->failures_allowed = value > 0 ? value : INT_MAX;
+  //       break;
+  //     }
+  //     case 'l': {
+  //       char* end;
+  //       double value = strtod(optarg, &end);
+  //       if (end == optarg)
+  //         Fatal("-l parameter not numeric: did you mean -l 0.0?");
+  //       config->max_load_average = value;
+  //       break;
+  //     }
+  //     case 'n':
+  //       config->dry_run = true;
+  //       break;
+  //     case 't':
+  //       options->tool = ChooseTool(optarg);
+  //       if (!options->tool)
+  //         return 0;
+  //       break;
+  //     case 'v':
+  //       config->verbosity = BuildConfig::VERBOSE;
+  //       break;
+  //     case OPT_QUIET:
+  //       config->verbosity = BuildConfig::NO_STATUS_UPDATE;
+  //       break;
+  //     case 'w':
+  //       if (!WarningEnable(optarg, options))
+  //         return 1;
+  //       break;
+  //     case 'C':
+  //       options->working_dir = optarg;
+  //       break;
+  //     case OPT_VERSION:
+  //       printf("%s\n", kNinjaVersion);
+  //       return 0;
+  //     case 'h':
+  //     default:
+  //       deferGuessParallelism.Refresh();
+  //       Usage(*config);
+  //       return 1;
+  //   }
+  // }
+  // *argv += optind;
+  // *argc -= optind;
 
-  return -1;
+  // return -1;
 }
 
 NORETURN void real_main(int argc, char** argv) {
